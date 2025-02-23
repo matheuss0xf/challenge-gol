@@ -1,7 +1,8 @@
 import logging
-import os
 import uuid
+from io import StringIO
 import pandas as pd
+import requests
 from app.database.connection import DBConnectionHandler
 from app.models.flight import FlightModel
 
@@ -27,8 +28,8 @@ def clean_and_process_data(df):
     return df
 
 
-def load_data_to_db(csv_file):
-    """Carrega dados de um arquivo CSV para o banco de dados."""
+def load_data_to_db(csv_url):
+    """Carrega dados de um arquivo CSV de uma URL para o banco de dados."""
 
     try:
         with DBConnectionHandler() as db:
@@ -36,12 +37,16 @@ def load_data_to_db(csv_file):
                 logging.info('Banco de dados já populado. Pulando a carga de dados.')
                 return
 
-        if not os.path.exists(csv_file):
-            logging.error(f'Arquivo não encontrado: {csv_file}')
+        logging.info(f'Baixando arquivo CSV de: {csv_url}')
+        response = requests.get(csv_url)
+
+        if response.status_code != 200:
+            logging.error(f'Erro ao baixar o arquivo CSV. Status Code: {response.status_code}')
             return
 
-        logging.info(f'Lendo arquivo CSV: {csv_file}')
-        df = pd.read_csv(csv_file, sep=';', skiprows=1, low_memory=False)
+
+        csv_data = StringIO(response.text)
+        df = pd.read_csv(csv_data, sep=';', skiprows=1, low_memory=False)
 
         df = clean_and_process_data(df)
         if df is None:
@@ -61,12 +66,14 @@ def load_data_to_db(csv_file):
                 db.session.rollback()
                 logging.error(f'Erro ao inserir dados no banco: {e}')
 
-    except FileNotFoundError:
-        logging.error(f'Arquivo não encontrado: {csv_file}')
+    except requests.exceptions.RequestException as e:
+        logging.error(f'Erro ao fazer o download do arquivo CSV: {e}')
     except pd.errors.EmptyDataError:
         logging.error('O arquivo CSV está vazio ou mal formatado.')
     except Exception as e:
         logging.error(f'Erro inesperado: {e}')
 
 
-load_data_to_db('data_anac.csv')
+csv_url = "https://sistemas.anac.gov.br/dadosabertos/Voos%20e%20opera%C3%A7%C3%B5es%20a%C3%A9reas/Dados%20Estat%C3%ADsticos%20do%20Transporte%20A%C3%A9reo/Dados_Estatisticos.csv"
+
+load_data_to_db(csv_url)
