@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "challenge-gol"
+version = "0.1.0"
+description = ""
+authors = ["matheuss0xf <matheussjd9@gmail.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.1.0"
+python-dotenv = "^1.0.1"
+sqlalchemy = "^2.0.38"
+pandas = "^2.2.3"
+flask-bcrypt = "^1.0.1"
+flask-jwt-extended = "^4.7.1"
+psycopg2 = "^2.9.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
+taskipy = "^1.14.1"
+ruff = "^0.9.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ['migrations']
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = '-p no:warnings'
+
+[tool.taskipy.tasks]
+lint = 'ruff check'
+format = 'ruff format'
+run = 'fastapi dev main.py'
+test = 'pytest -s -x --cov=app -vv'
+post_test = 'coverage html'
