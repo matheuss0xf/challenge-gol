@@ -96,3 +96,4 @@ O objetivo desse projeto é criar uma aplicação que importa dados de voos a pa
     - `sort`: Ordenação (ex: year:asc,month:asc).
 
 ### **Exemplo de uso**
+![api](https://github.com/user-attachments/assets/5b6b6723-263b-42b7-a2c9-bb63e48c453a)
